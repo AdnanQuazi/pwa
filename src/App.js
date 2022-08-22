@@ -21,6 +21,10 @@ function App() {
 
   }
 
+
+
+  
+
   const handleTurn = ()=>{
     setPickOne(null)
     setPickTwo(null)
@@ -29,6 +33,7 @@ function App() {
 
   useEffect(()=>{
     let pickTimer;
+    console.log(cards);
     if(pickOne && pickTwo){
 
       if(pickOne.image === pickTwo.image){
@@ -40,7 +45,7 @@ function App() {
             if(card.image === pickOne.image){
               return {...card , matched : true}
             } else {
-              return card
+              return {...card}
             }
 
           })
@@ -50,10 +55,20 @@ function App() {
       } else {
         setDisabled(true);
 
+       
+
         pickTimer = setTimeout(() => {
+          //To clear hints
+            if(pickOne){
+                setCards(cards.map((card) => {
+                return card.hint ? {...card , hint : false} : {...card}
+              }))
+            }
           handleTurn()
         }, 1000)
+
       }
+
     }
 
     return ()=>{
@@ -75,6 +90,7 @@ function App() {
     return ()=>{
       clearTimeout(pickTimer)
     }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cards,wins])
 
   const handleNewGame = ()=>{
@@ -84,9 +100,29 @@ function App() {
     setCards(Shuffle)
   }
 
+
+
+  const handleHint = ()=>{
+   if(pickOne){
+      setCards((prevCards) =>{
+      return prevCards.map((card) =>{
+        
+        if(card.image === pickOne.image && card.id !== pickOne.id){
+          return {...card , hint : true}
+        } else {
+          return card
+        }
+
+      })
+
+      })
+      
+   } 
+  }
+
   return (
     <>
-      <Header handleNewGame={handleNewGame} wins={wins}/>
+      <Header handleNewGame={handleNewGame} wins={wins} handleHint={handleHint}/>
 
       <div className='container'>
           <div className='toast'>
@@ -94,13 +130,14 @@ function App() {
           </div>
           <div className="grid">
               {cards.map((card) => {
-                const { image , id , matched} = card
+                const { image , id , matched , hint} = card
                 return (
                   <Card 
                     key={id}
                     image={image}
                     selected={card === pickOne || card === pickTwo || matched}
                     onClick={() => {handleClick(card , card === pickOne || card === pickTwo || matched)}}
+                    hint={hint}
                   />
                 )
               })}
